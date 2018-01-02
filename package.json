@@ -5,12 +5,14 @@
   "main": "index.js",
   "scripts": {
     "start": "babel-node ./src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "type-check": "flow"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "ajv": "^5.5.2",
+    "flow-bin": "^0.62.0",
     "prettier": "^1.9.2"
   },
   "dependencies": {
