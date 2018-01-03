@@ -6,11 +6,9 @@ import type { Interface } from './parse'
 
 const printInterfaces = (interfaces: Array<Interface>) => {
   interfaces.forEach(api => {
-    console.log(
-      `export type ${makeRequestBodyTypeName(
-        api.name,
-      )} = ${printTypeDefinitions(api.requestBody)}`,
-    )
+    if (api.requestBody) {
+      printTypeDefinitions(api.requestBody)
+    }
   })
 
   console.log(`
@@ -28,11 +26,13 @@ class Client {
   console.log('}')
 }
 
-const makeRequestBodyTypeName = name =>
-  `${name.replace(/^\w/, match => match.toUpperCase())}RequestBody`
 const printWithRequestBody = api => {
+  if (!api.requestBody) {
+    throw new Error('this route is not reached')
+  }
+  const requestBodyTypeName = Object.keys(api.requestBody)[0]
   console.log(`
-  ${api.name}(requestBody: ${makeRequestBodyTypeName(api.name)}) {
+  ${api.name}(requestBody: ${requestBodyTypeName}) {
     return fetch(\`\${this.host}\`${api.endpoint}, {
       method: ${api.method},
       body: JSON.stringify(requestBody),

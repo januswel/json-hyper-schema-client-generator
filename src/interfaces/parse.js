@@ -1,6 +1,6 @@
 // @flow
 
-import parseTypeDefinitions from '../type-definitions/parse'
+import { parseJsonSchemaDefinition } from '../type-definitions/parse'
 
 export type Interface = {
   name: string,
@@ -8,16 +8,18 @@ export type Interface = {
   endpoint: string,
   contentType?: string,
   description?: string,
-  requestBody?: string | Object,
-  responseBody?: string | Object,
+  requestBody?: {
+    [name: string]: string | Object,
+  },
 }
 
 const parseJsonSchemaLinks = (links: JsonSchemaLinks) =>
   links.map(link => parseJsonSchemaLink(link))
 
 const parseJsonSchemaLink = (link: JsonSchemaLink) => {
+  const name = makeInterfaceName(link.title)
   const result: Interface = {
-    name: makeMethodName(link.title),
+    name,
     method: 'GET',
     endpoint: link.href,
   }
@@ -31,18 +33,20 @@ const parseJsonSchemaLink = (link: JsonSchemaLink) => {
     result.description = link.description
   }
   if (link.schema) {
-    result.requestBody = parseTypeDefinitions(link.schema)
-  }
-  if (link.targetSchema) {
-    result.responseBody = parseTypeDefinitions(link.targetSchema)
+    const requestBodyTypeName = makeRequestBodyTypeName(name)
+    result.requestBody = {
+      [requestBodyTypeName]: parseJsonSchemaDefinition(link.schema),
+    }
   }
 
   return result
 }
 
-const makeMethodName = (title: string) =>
+const makeInterfaceName = (title: string) =>
   title
     .replace(/^(\w)/, match => match.toLowerCase())
     .replace(/ ((\w))/g, (match, p1) => p1.toUpperCase())
+const makeRequestBodyTypeName = name =>
+  `${name.replace(/^\w/, match => match.toUpperCase())}RequestBody`
 
 export default parseJsonSchemaLinks

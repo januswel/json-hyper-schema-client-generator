@@ -1,18 +1,12 @@
 // @flow
 
-import parse, { makeSymbol } from './parse'
+import parseJsonSchemaDefinitions from './parse'
 import { mapObject } from '../util'
-import print from './print'
+import printTypeDefinitions from './print'
 
 const generateTypeDefinitions = async (definitions: JsonSchemaDefinitions) => {
-  const types = mapObject(definitions, (name, definition) => {
-    return [makeSymbol(name), parse(definition)]
-  })
-
-  Object.keys(types).forEach(name => {
-    const type = types[name]
-    console.log(`export type ${name} = ${print(type)}`)
-  })
+  const typeDefinitions = parseJsonSchemaDefinitions(definitions)
+  printTypeDefinitions(typeDefinitions)
 }
 
 export default generateTypeDefinitions

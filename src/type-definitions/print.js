@@ -1,6 +1,15 @@
 // @flow
 
-const printTypes = (type: any, indentLevel: number = 0) => {
+import type { TypeDefinitions } from './parse'
+
+const printTypeDefinitions = (typeDefinitions: TypeDefinitions) => {
+  Object.keys(typeDefinitions).forEach(name => {
+    const typeDefinition = typeDefinitions[name]
+    console.log(`export type ${name} = ${printTypeDefinition(typeDefinition)}`)
+  })
+}
+
+const printTypeDefinition = (type: any, indentLevel: number = 0) => {
   switch (typeof type) {
     case 'object': {
       const indent = Array(indentLevel + 1).join('  ')
@@ -10,7 +19,7 @@ const printTypes = (type: any, indentLevel: number = 0) => {
         Object.keys(type)
           .map(
             key =>
-              `${indentContent}${key}: ${printTypes(
+              `${indentContent}${key}: ${printTypeDefinition(
                 type[key],
                 indentLevel + 1,
               )},`,
@@ -24,4 +33,4 @@ const printTypes = (type: any, indentLevel: number = 0) => {
   }
 }
 
-export default printTypes
+export default printTypeDefinitions

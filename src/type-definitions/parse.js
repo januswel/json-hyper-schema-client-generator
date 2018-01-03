@@ -2,15 +2,24 @@
 
 import { mapObject, convertSnakeCaseToPascalCase } from '../util'
 
-const parseTypeDefinitions = (src: Object) => {
+export type TypeDefinitions = {
+  [name: string]: string | TypeDefinitions,
+}
+
+const parseJsonSchemaDefinitions = (definitions: JsonSchemaDefinitions) =>
+  mapObject(definitions, (name, definition) => {
+    return [makeSymbol(name), parseJsonSchemaDefinition(definition)]
+  })
+
+const parseJsonSchemaDefinition = (src: Object) => {
   if (src.oneOf) {
     return src.oneOf
-      .map(definition => parseTypeDefinitions(definition))
+      .map(definition => parseJsonSchemaDefinitions(definition))
       .join(' | ')
   }
   if (src.anyOf) {
     return src.anyOf
-      .map(definition => parseTypeDefinitions(definition))
+      .map(definition => parseJsonSchemaDefinitions(definition))
       .join(' | ')
   }
   if (src.$ref) {
@@ -36,10 +45,10 @@ const parseTypeDefinitions = (src: Object) => {
         if (src.required) {
           return [
             `${key}${isRequired(src.required, key)}`,
-            parseTypeDefinitions(value),
+            parseJsonSchemaDefinitions(value),
           ]
         }
-        return [key, parseTypeDefinitions(value)]
+        return [key, parseJsonSchemaDefinitions(value)]
       })
     }
     case 'array': {
@@ -71,5 +80,5 @@ const isRequired = (required: Array<string>, key) => {
   return required.includes(key) ? '' : '?'
 }
 
-export default parseTypeDefinitions
-export { makeSymbol }
+export default parseJsonSchemaDefinitions
+export { parseJsonSchemaDefinition }
