@@ -38,7 +38,7 @@ const printWithRequestBody = api => {
       body: JSON.stringify(requestBody),
     })
       .then(response => response.json())
-      .cacth(err => {
+      .catch(err => {
         throw err
       })
   }`)
@@ -47,11 +47,11 @@ const printWithRequestBody = api => {
 const printWithoutRequestBody = api => {
   console.log(`
   ${api.name}() {
-    return fetch(\`\${this.host}\`${api.endpoint}, {
+    return fetch(\`\${this.host}${api.endpoint}\`, {
       method: '${api.method}',
     })
       .then(response => response.json())
-      .cacth(err => {
+      .catch(err => {
         throw err
       })
   }`)
