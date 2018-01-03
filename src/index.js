@@ -50,6 +50,7 @@ const printDependencies = fetch => {
     }
     case 'whatwg-fetch': {
       console.log("import 'whatwg-fetch'")
+      return
     }
   }
 }
