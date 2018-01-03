@@ -32,6 +32,11 @@ export default class Client {
   console.log('}')
 }
 
+const makeHeaders = headers =>
+  Object.keys(headers)
+    .map(header => `'${header}': '${headers[header]}',`)
+    .join('\n')
+
 const printWithRequestBody = api => {
   if (!api.requestBody) {
     throw new Error('this route is not reached')
@@ -44,17 +49,26 @@ const printWithRequestBody = api => {
         return 'JSON.stringify(requestBody)'
       case 'application/x-www-form-urlencoded':
         return 'Client.makeQueryString(requestBody)'
+      default:
+        return ''
     }
   })()
 
   const queryString = api.method === 'GET' ? `?\${${requestBody}}` : ''
   const optionBody = api.method !== 'GET' ? `body: ${requestBody},` : ''
 
+  const headers = {}
+  if (api.contentType) {
+    headers['Content-Type'] = api.contentType
+  }
+
   console.log(`
   ${api.name}(requestBody: ${requestBodyTypeName}) {
     return fetch(\`\${this.host}${api.endpoint}${queryString}\`, {
       method: '${api.method}',
-      ${optionBody}
+      headers: {
+        ${makeHeaders(headers)}
+      },${optionBody ? `\n      ${optionBody}` : ''}
     })
       .then(response => response.json())
       .catch(err => {
