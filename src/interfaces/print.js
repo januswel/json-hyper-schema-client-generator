@@ -15,6 +15,12 @@ const printInterfaces = (interfaces: Array<Interface>) => {
 export default class Client {
   constructor(host: string) {
     this.host = host
+  }
+
+  static makeQueryString(requestBody: Object) {
+    return Object.keys(requestBody)
+      .map(key => \`\${key}=\${encodeURIComponent(requestBody[key])}\`)
+      .join('&')
   }`)
   interfaces.forEach(api => {
     if (api.requestBody) {
@@ -31,11 +37,24 @@ const printWithRequestBody = api => {
     throw new Error('this route is not reached')
   }
   const requestBodyTypeName = Object.keys(api.requestBody)[0]
+
+  const requestBody = (() => {
+    switch (api.contentType) {
+      case 'application/json':
+        return 'JSON.stringify(requestBody)'
+      case 'application/x-www-form-urlencoded':
+        return 'Client.makeQueryString(requestBody)'
+    }
+  })()
+
+  const queryString = api.method === 'GET' ? `?\${${requestBody}}` : ''
+  const optionBody = api.method !== 'GET' ? `body: ${requestBody},` : ''
+
   console.log(`
   ${api.name}(requestBody: ${requestBodyTypeName}) {
-    return fetch(\`\${this.host}${api.endpoint}\`, {
-      method: ${api.method},
-      body: JSON.stringify(requestBody),
+    return fetch(\`\${this.host}${api.endpoint}${queryString}\`, {
+      method: '${api.method}',
+      ${optionBody}
     })
       .then(response => response.json())
       .catch(err => {
