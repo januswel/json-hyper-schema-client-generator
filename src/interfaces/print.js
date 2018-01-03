@@ -12,7 +12,7 @@ const printInterfaces = (interfaces: Array<Interface>) => {
   })
 
   console.log(`
-class Client {
+export default class Client {
   constructor(host: string) {
     this.host = host
   }`)
