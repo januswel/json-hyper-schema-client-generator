@@ -22,12 +22,19 @@ const main = async () => {
     await generateInterfaces(schema.links)
   } catch (err) {
     console.error(err.message)
+    printUsage()
   }
+}
+
+const printUsage = () => {
+  console.error(
+    'Usage: generate-json-hyper-schema-client [--fetch <fetch library>] <JSON Hyper Schama file> > client.js',
+  )
 }
 
 const processArguments = () => {
   const argv = minimist(process.argv.slice(2))
-  if (!argv._) {
+  if (argv._.length < 1) {
     throw new Error('specify target JSON Hyper Schema file')
   }
   if (argv.fetch && !['node-fetch', 'whatwg-fetch'].includes(argv.fetch)) {
