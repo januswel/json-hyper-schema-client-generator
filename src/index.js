@@ -43,6 +43,7 @@ const printDependencies = fetch => {
   if (!fetch) {
     return
   }
+  console.log("import FormData from 'form-data'")
   switch (fetch) {
     case 'node-fetch': {
       console.log("import fetch from 'node-fetch'")
@@ -50,6 +51,7 @@ const printDependencies = fetch => {
     }
     case 'whatwg-fetch': {
       console.log("import 'whatwg-fetch'")
+      return
     }
   }
 }

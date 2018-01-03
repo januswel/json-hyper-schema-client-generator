@@ -6,7 +6,7 @@ export type Interface = {
   name: string,
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   endpoint: string,
-  contentType?: string,
+  contentType: string,
   description?: string,
   requestBody?: {
     [name: string]: string | Object,
@@ -22,6 +22,7 @@ const parseJsonSchemaLink = (link: JsonSchemaLink) => {
     name,
     method: 'GET',
     endpoint: link.href,
+    contentType: 'application/x-www-form-urlencoded',
   }
   if (link.method) {
     result.method = link.method
