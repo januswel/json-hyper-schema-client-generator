@@ -6,13 +6,38 @@ import generateTypeDefinitions from './type-definitions'
 import generateInterfaces from './interfaces'
 
 const main = async () => {
+  try {
+    const argv = processArguments()
+
+    const raw = fs.readFileSync(argv.target).toString()
+
+    const schema = JSON.parse(raw)
+
+    console.log('// @flow')
+    console.log('// type definitions')
+    await generateTypeDefinitions(schema.definitions)
+
+    console.log('// interfaces')
+    await generateInterfaces(schema.links)
+  } catch (err) {
+    console.error(err.message)
+  }
+}
+
+const processArguments = () => {
   const argv = minimist(process.argv.slice(2))
-  const raw = fs.readFileSync(argv._[0]).toString()
+  if (!argv._) {
+    throw new Error('specify target JSON Hyper Schema file')
+  }
+  if (argv.fetch && !['node-fetch', 'whatwg-fetch'].includes(argv.fetch)) {
+    throw new Error('specify fetch library from "node-fetch" or "whatwg-fetch"')
+  }
+  return {
+    target: argv._[0],
+    fetchLibrary: argv.fetch,
+  }
+}
 
-  const schema = JSON.parse(raw)
-
-  await generateTypeDefinitions(schema.definitions)
-  await generateInterfaces(schema.links)
 }
 
 main()
