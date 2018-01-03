@@ -13,14 +13,20 @@ const parseJsonSchemaDefinitions = (definitions: JsonSchemaDefinitions) =>
 
 const parseJsonSchemaDefinition = (src: Object) => {
   if (src.oneOf) {
-    return src.oneOf
-      .map(definition => parseJsonSchemaDefinition(definition))
-      .join(' | ')
+    return {
+      isUnion: true,
+      typeDefinition: src.oneOf.map(definition =>
+        parseJsonSchemaDefinition(definition),
+      ),
+    }
   }
   if (src.anyOf) {
-    return src.anyOf
-      .map(definition => parseJsonSchemaDefinition(definition))
-      .join(' | ')
+    return {
+      isUnion: true,
+      typeDefinition: src.anyOf.map(definition =>
+        parseJsonSchemaDefinition(definition),
+      ),
+    }
   }
   if (src.$ref) {
     return makeSymbol(src.$ref)
