@@ -14,12 +14,12 @@ const parseJsonSchemaDefinitions = (definitions: JsonSchemaDefinitions) =>
 const parseJsonSchemaDefinition = (src: Object) => {
   if (src.oneOf) {
     return src.oneOf
-      .map(definition => parseJsonSchemaDefinitions(definition))
+      .map(definition => parseJsonSchemaDefinition(definition))
       .join(' | ')
   }
   if (src.anyOf) {
     return src.anyOf
-      .map(definition => parseJsonSchemaDefinitions(definition))
+      .map(definition => parseJsonSchemaDefinition(definition))
       .join(' | ')
   }
   if (src.$ref) {
@@ -45,10 +45,10 @@ const parseJsonSchemaDefinition = (src: Object) => {
         if (src.required) {
           return [
             `${key}${isRequired(src.required, key)}`,
-            parseJsonSchemaDefinitions(value),
+            parseJsonSchemaDefinition(value),
           ]
         }
-        return [key, parseJsonSchemaDefinitions(value)]
+        return [key, parseJsonSchemaDefinition(value)]
       })
     }
     case 'array': {
