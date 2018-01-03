@@ -33,7 +33,7 @@ const printWithRequestBody = api => {
   const requestBodyTypeName = Object.keys(api.requestBody)[0]
   console.log(`
   ${api.name}(requestBody: ${requestBodyTypeName}) {
-    return fetch(\`\${this.host}\`${api.endpoint}, {
+    return fetch(\`\${this.host}${api.endpoint}\`, {
       method: ${api.method},
       body: JSON.stringify(requestBody),
     })
