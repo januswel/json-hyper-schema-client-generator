@@ -14,6 +14,7 @@ const main = async () => {
     const schema = JSON.parse(raw)
 
     console.log('// @flow')
+    printDependencies(argv.fetchLibrary)
     console.log('// type definitions')
     await generateTypeDefinitions(schema.definitions)
 
@@ -38,6 +39,19 @@ const processArguments = () => {
   }
 }
 
+const printDependencies = fetch => {
+  if (!fetch) {
+    return
+  }
+  switch (fetch) {
+    case 'node-fetch': {
+      console.log("import fetch from 'node-fetch'")
+      return
+    }
+    case 'whatwg-fetch': {
+      console.log("import 'whatwg-fetch'")
+    }
+  }
 }
 
 main()
