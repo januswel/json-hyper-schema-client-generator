@@ -47,6 +47,6 @@ const makeInterfaceName = (title: string) =>
     .replace(/^(\w)/, match => match.toLowerCase())
     .replace(/ ((\w))/g, (match, p1) => p1.toUpperCase())
 const makeRequestBodyTypeName = name =>
-  `${name.replace(/^\w/, match => match.toUpperCase())}RequestBody`
+  `JS${name.replace(/^\w/, match => match.toUpperCase())}RequestBody`
 
 export default parseJsonSchemaLinks
