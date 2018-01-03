@@ -21,6 +21,14 @@ export default class Client {
     return Object.keys(requestBody)
       .map(key => \`\${key}=\${encodeURIComponent(requestBody[key])}\`)
       .join('&')
+  }
+
+  static makeFormData(requestBody: Object) {
+    const formData = new FormData()
+    Object.keys(requestBody).forEach(key => {
+      formData.append(key, requestBody[key])
+    })
+    return formData
   }`)
   interfaces.forEach(api => {
     if (api.requestBody) {
@@ -49,6 +57,8 @@ const printWithRequestBody = api => {
         return 'JSON.stringify(requestBody)'
       case 'application/x-www-form-urlencoded':
         return 'Client.makeQueryString(requestBody)'
+      case 'multipart/form-data':
+        return 'Client.makeFormData(requestBody)'
       default:
         return ''
     }
