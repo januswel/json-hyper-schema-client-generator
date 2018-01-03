@@ -75,12 +75,13 @@ const printWithRequestBody = api => {
   }
 
   console.log(`
-  ${api.name}(requestBody: ${requestBodyTypeName}) {
+  ${api.name}(requestBody: ${requestBodyTypeName}, extraHeaders: Object = {}) {
+    const headers = Object.assign({
+      ${makeHeaders(headers)}
+    }, extraHeaders)
     return fetch(\`\${this.host}${api.endpoint}${queryString}\`, {
       method: '${api.method}',
-      headers: {
-        ${makeHeaders(headers)}
-      },${optionBody ? `\n      ${optionBody}` : ''}
+      headers,${optionBody ? `\n      ${optionBody}` : ''}
     })
       .then(response => response.json())
       .catch(err => {
@@ -91,9 +92,10 @@ const printWithRequestBody = api => {
 
 const printWithoutRequestBody = api => {
   console.log(`
-  ${api.name}() {
+  ${api.name}(extraHeaders: Object) {
     return fetch(\`\${this.host}${api.endpoint}\`, {
       method: '${api.method}',
+      headers: extraHeaders,
     })
       .then(response => response.json())
       .catch(err => {
