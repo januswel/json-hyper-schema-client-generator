@@ -12,7 +12,10 @@ export type Interface = {
   responseBody?: string | Object,
 }
 
-const parseInterfaces = (link: JsonSchemaLink) => {
+const parseJsonSchemaLinks = (links: JsonSchemaLinks) =>
+  links.map(link => parseJsonSchemaLink(link))
+
+const parseJsonSchemaLink = (link: JsonSchemaLink) => {
   const result: Interface = {
     name: makeMethodName(link.title),
     method: 'GET',
@@ -42,4 +45,4 @@ const makeMethodName = (title: string) =>
     .replace(/^(\w)/, match => match.toLowerCase())
     .replace(/ ((\w))/g, (match, p1) => p1.toUpperCase())
 
-export default parseInterfaces
+export default parseJsonSchemaLinks

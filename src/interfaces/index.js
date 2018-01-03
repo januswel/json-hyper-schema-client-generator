@@ -1,14 +1,11 @@
 // @flow
 
-import parse from './parse'
-import print from './print'
+import parseJsonSchemaLinks from './parse'
+import printInterfaces from './print'
 
 const generateInterfaces = async (links: JsonSchemaLinks) => {
-  const interfaces = links.map(link => {
-    return parse(link)
-  })
-
-  print(interfaces)
+  const interfaces = parseJsonSchemaLinks(links)
+  printInterfaces(interfaces)
 }
 
 export default generateInterfaces
