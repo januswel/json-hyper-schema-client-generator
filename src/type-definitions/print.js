@@ -15,6 +15,9 @@ const printTypeDefinition = (type: any, indentLevel: number = 0) => {
       if (type.isArray) {
         return `Array<${type.typeDefinition}>`
       }
+      if (type.isUnion) {
+        return type.typeDefinition.join(' | ')
+      }
 
       const indent = Array(indentLevel + 1).join('  ')
       const indentContent = Array(indentLevel + 2).join('  ')
