@@ -5,29 +5,49 @@ import fs from 'fs'
 import { mapObject, convertSnakeCaseToPascalCase } from './util'
 
 const makeSymbol = (src: string) =>
-  `JsonSchema${convertSnakeCaseToPascalCase(stripReference(src))}`
+  `JS${convertSnakeCaseToPascalCase(stripReference(src))}`
 const stripReference = (src: string) => src.replace(/^#\/definitions\//, '')
-const parseJsonSchema = (src: Object) => {
+const isRequired = (required: Array<string>, key) => {
+  return required.includes(key) ? '' : '?'
+}
+const parseTypeDefinitions = (src: Object) => {
   if (src.oneOf) {
-    return src.oneOf.map(definition => parseJsonSchema(definition)).join(' | ')
+    return src.oneOf
+      .map(definition => parseTypeDefinitions(definition))
+      .join(' | ')
   }
   if (src.anyOf) {
-    return src.anyOf.map(definition => parseJsonSchema(definition)).join(' | ')
+    return src.anyOf
+      .map(definition => parseTypeDefinitions(definition))
+      .join(' | ')
   }
   if (src.$ref) {
     return makeSymbol(src.$ref)
   }
 
-  switch (src.type) {
+  const type = src.type || 'object'
+  switch (type) {
     case 'object': {
       if (!src.properties) {
         return 'Object'
       }
       return mapObject(src.properties, (key, value) => {
         if (value.$ref) {
+          if (src.required) {
+            return [
+              `${key}${isRequired(src.required, key)}`,
+              makeSymbol(value.$ref),
+            ]
+          }
           return [key, makeSymbol(value.$ref)]
         }
-        return [key, parseJsonSchema(value)]
+        if (src.required) {
+          return [
+            `${key}${isRequired(src.required, key)}`,
+            parseTypeDefinitions(value),
+          ]
+        }
+        return [key, parseTypeDefinitions(value)]
       })
     }
     case 'array': {
@@ -46,13 +66,13 @@ const parseJsonSchema = (src: Object) => {
       return 'null'
     default: {
       console.error('not implemented yet')
-      console.error(src)
+      console.error(src.type, src)
       return src
     }
   }
 }
 
-const print = (type: any, indentLevel: number = 0) => {
+const printTypes = (type: any, indentLevel: number = 0) => {
   switch (typeof type) {
     case 'object': {
       const indent = Array(indentLevel + 1).join('  ')
@@ -62,7 +82,10 @@ const print = (type: any, indentLevel: number = 0) => {
         Object.keys(type)
           .map(
             key =>
-              `${indentContent}${key}: ${print(type[key], indentLevel + 1)},`,
+              `${indentContent}${key}: ${printTypes(
+                type[key],
+                indentLevel + 1,
+              )},`,
           )
           .join(`\n`),
         `${indent}}`,
@@ -73,19 +96,104 @@ const print = (type: any, indentLevel: number = 0) => {
   }
 }
 
+const makeMethodName = (title: string) =>
+  title
+    .replace(/^(\w)/, match => match.toLowerCase())
+    .replace(/ ((\w))/g, (match, p1) => p1.toUpperCase())
+
+const parseInterface = link => {
+  const result = {
+    name: makeMethodName(link.title),
+    method: 'GET',
+    endpoint: link.href,
+  }
+  if (link.method) {
+    result.method = link.method
+  }
+  if (link.encType) {
+    result.contentType = link.encType
+  }
+  if (link.description) {
+    result.description = link.description
+  }
+  if (link.schema) {
+    result.requestBody = parseTypeDefinitions(link.schema)
+  }
+  if (link.targetSchema) {
+    result.responseBody = parseTypeDefinitions(link.targetSchema)
+  }
+
+  return result
+}
+const printWithoutRequestBody = api => {
+  console.log(`
+  ${api.name}() {
+    return fetch(\`\${this.host}\`${api.endpoint}, {
+      method: '${api.method}',
+    })
+      .then(response => response.json())
+      .cacth(err => {
+        throw err
+      })
+  }`)
+}
+
+const makeRequestBodyTypeName = name =>
+  `${name.replace(/^\w/, match => match.toUpperCase())}RequestBody`
+const printWithRequestBody = api => {
+  console.log(`
+  ${api.name}(requestBody: ${makeRequestBodyTypeName(api.name)}) {
+    return fetch(\`\${this.host}\`${api.endpoint}, {
+      method: ${api.method},
+      body: JSON.stringify(requestBody),
+    })
+      .then(response => response.json())
+      .cacth(err => {
+        throw err
+      })
+  }`)
+}
+const printInterfaces = interfaces => {
+  interfaces.forEach(api => {
+    console.log(
+      `export type ${makeRequestBodyTypeName(api.name)} = ${printTypes(
+        api.requestBody,
+      )}`,
+    )
+  })
+
+  console.log(`
+class Client {
+  constructor(host: string) {
+    this.host = host
+  }`)
+  interfaces.forEach(api => {
+    if (api.requestBody) {
+      printWithRequestBody(api)
+    } else {
+      printWithoutRequestBody(api)
+    }
+  })
+  console.log('}')
+}
+
 const generateTypeDefinitions = async definitions => {
   const types = mapObject(definitions, (name, definition) => {
-    return [makeSymbol(name), parseJsonSchema(definition)]
+    return [makeSymbol(name), parseTypeDefinitions(definition)]
   })
 
   Object.keys(types).forEach(name => {
     const type = types[name]
-    console.log(`export type ${name} = ${print(type)}`)
+    console.log(`export type ${name} = ${printTypes(type)}`)
   })
 }
 
-const generateLinks = async links => {
-  console.error(links)
+const generateClient = async links => {
+  const interfaces = links.map(link => {
+    return parseInterface(link)
+  })
+
+  printInterfaces(interfaces)
 }
 
 const main = async () => {
@@ -95,7 +203,7 @@ const main = async () => {
   const schema = JSON.parse(raw)
 
   await generateTypeDefinitions(schema.definitions)
-  await generateLinks(schema.links)
+  await generateClient(schema.links)
 }
 
 main()
