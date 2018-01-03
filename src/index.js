@@ -101,8 +101,17 @@ const makeMethodName = (title: string) =>
     .replace(/^(\w)/, match => match.toLowerCase())
     .replace(/ ((\w))/g, (match, p1) => p1.toUpperCase())
 
+type Interface = {
+  name: string,
+  method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+  endpoint: string,
+  contentType?: string,
+  description?: string,
+  requestBody?: string | Object,
+  responseBody?: string | Object,
+}
 const parseInterface = link => {
-  const result = {
+  const result: Interface = {
     name: makeMethodName(link.title),
     method: 'GET',
     endpoint: link.href,
