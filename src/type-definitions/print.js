@@ -12,6 +12,10 @@ const printTypeDefinitions = (typeDefinitions: TypeDefinitions) => {
 const printTypeDefinition = (type: any, indentLevel: number = 0) => {
   switch (typeof type) {
     case 'object': {
+      if (type.isArray) {
+        return `Array<${type.typeDefinition}>`
+      }
+
       const indent = Array(indentLevel + 1).join('  ')
       const indentContent = Array(indentLevel + 2).join('  ')
       return [
