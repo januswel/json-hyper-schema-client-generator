@@ -53,7 +53,10 @@ const parseJsonSchemaDefinition = (src: Object) => {
     }
     case 'array': {
       if (src.items.$ref) {
-        return `Array<${makeSymbol(src.items.$ref)}>`
+        return {
+          isArray: true,
+          typeDefinition: makeSymbol(src.items.$ref),
+        }
       }
     }
     case 'boolean':
